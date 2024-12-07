@@ -40,8 +40,8 @@ func main() {
 }
 
 type linodeConfig struct {
-	APIKey          string        `json:"apiKey"`
-	APISecretKeyRef APISecretKeys `json:"apiKeySecretRef"`
+	APIKey          string        `json:"apiKey,omitempty"`
+	APISecretKeyRef APISecretKeys `json:"apiKeySecretRef,omitempty"`
 }
 
 type APISecretKeys struct {
@@ -139,6 +139,11 @@ func loadConfig(cfgJSON *v1.JSON) (linodeConfig, error) {
 		return cfg, fmt.Errorf("error decoding solver config: %v", err)
 	}
 
+	if cfg.APIKey == "" && cfg.APISecretKeyRef.Name == "" {
+		println("no api key set")
+		return cfg, nil
+	}
+
 	// If a secret name is set, we'll attempt to fetch the api key from a secret
 	if cfg.APISecretKeyRef.Name != "" {
 		println("api key secret", cfg.APISecretKeyRef.Name)
@@ -148,7 +153,6 @@ func loadConfig(cfgJSON *v1.JSON) (linodeConfig, error) {
 			cfg.APIKey = val
 		}
 	}
-
 	return cfg, nil
 }
 
