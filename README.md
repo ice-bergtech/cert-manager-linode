@@ -39,3 +39,36 @@ spec:
             config:
               apiKey: your-api-key
 ```
+
+Pass API Key with a Secret:
+
+```yaml
+apiVersion: cert-manager.io/v1
+kind: ClusterIssuer
+metadata:
+  name: letsencrypt-prod
+spec:
+  acme:
+    email: your-email-address
+    privateKeySecretRef:
+      name: letsencrypt-prod
+    server: https://acme-v02.api.letsencrypt.org/directory
+    solvers:
+      - dns01:
+          webhook:
+            groupName: acme.cluster.local
+            solverName: linode
+            config:
+              apiKeySecretRef:
+                name: linode-token
+                key: data
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: 'linode-token'
+  namespace: cert-manager
+stringData:
+  data: 'your-api-key'
+---
+```
