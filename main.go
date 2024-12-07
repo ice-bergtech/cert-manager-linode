@@ -16,6 +16,8 @@ import (
 	"github.com/linode/linodego"
 
 	v1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
 )
 
@@ -26,6 +28,9 @@ var (
 
 var GroupName = os.Getenv("GROUP_NAME")
 
+// Used to fetch api key from a kube secret
+var kClientConfig *rest.Config
+
 func main() {
 	if GroupName == "" {
 		panic("GROUP_NAME must be specified")
@@ -35,17 +40,23 @@ func main() {
 }
 
 type linodeConfig struct {
-	APIKey string `json:"apiKey"`
+	APIKey          string        `json:"apiKey"`
+	APISecretKeyRef APISecretKeys `json:"apiKeySecretRef"`
 }
 
-type linodeSolver struct {
+type APISecretKeys struct {
+	Name string `json:"name"`
+	Key  string `json:"json"`
 }
+
+type linodeSolver struct{}
 
 func (s *linodeSolver) Name() string {
 	return "linode"
 }
 
 func (s *linodeSolver) Initialize(kubeClientConfig *rest.Config, stopCh <-chan struct{}) error {
+	kClientConfig = kubeClientConfig
 	return nil
 }
 
@@ -128,6 +139,16 @@ func loadConfig(cfgJSON *v1.JSON) (linodeConfig, error) {
 		return cfg, fmt.Errorf("error decoding solver config: %v", err)
 	}
 
+	// If a secret name is set, we'll attempt to fetch the api key from a secret
+	if cfg.APISecretKeyRef.Name != "" {
+		println("api key secret", cfg.APISecretKeyRef.Name)
+		if val, err := apiKeyFromSecret(cfg); err != nil {
+			return cfg, fmt.Errorf("kube secret error: %v", err)
+		} else {
+			cfg.APIKey = val
+		}
+	}
+
 	return cfg, nil
 }
 
@@ -139,6 +160,23 @@ func clientFromRequest(ch *acme.ChallengeRequest) (*linodego.Client, error) {
 	}
 
 	return clientFromConfig(cfg)
+}
+
+// fetches a secret via the kubernetes api based on cfg
+func apiKeyFromSecret(cfg linodeConfig) (string, error) {
+	//
+	kubeClient, err := kubernetes.NewForConfig(kClientConfig)
+	if err != nil {
+		return "", fmt.Errorf("issue creating kube api client: %v", err)
+	}
+
+	// fetch the kube secret
+	secret, err := kubeClient.CoreV1().Secrets(cfg.APISecretKeyRef.Name).Get(context.TODO(), cfg.APISecretKeyRef.Key, metav1.GetOptions{})
+	if err != nil {
+		return "", fmt.Errorf("issue fetching secret: %v", err)
+	}
+
+	return string(secret.Data["apiKey"]), nil
 }
 
 func clientFromConfig(cfg linodeConfig) (*linodego.Client, error) {
