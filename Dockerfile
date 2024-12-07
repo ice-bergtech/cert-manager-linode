@@ -1,4 +1,4 @@
-FROM golang:1.19-alpine3.16 AS build_deps
+FROM golang:1.23-alpine3.21 AS build_deps
 
 WORKDIR /src
 
@@ -13,7 +13,7 @@ COPY . .
 RUN CGO_ENABLED=0 go build -o webhook -ldflags '-w -extldflags "-static"' .
 
 
-FROM alpine:3.16
+FROM alpine:3.21
 
 RUN apk add --no-cache ca-certificates
 COPY --from=build /src/webhook /usr/local/bin/webhook
