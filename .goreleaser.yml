@@ -18,8 +18,7 @@ before:
 builds:
   - env: 
       - CGO_ENABLED=0
-    flags:
-      - -o webhook
+    binary: webhook
     ldflags:
       - -w -extldflags "-static"
     goos:
@@ -34,7 +33,7 @@ dockers:
       - "ghcr.io/ice-bergtech/cert-manager-linode:latest"
       use: buildx
       goos: linux
-      dockerfile: "docker/Dockerfile"
+      dockerfile: "Dockerfile"
       build_flag_templates:
         - "--pull"
         - "--platform=linux/amd64"
