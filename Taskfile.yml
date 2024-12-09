@@ -47,6 +47,9 @@ tasks:
         sh: git tag --contains HEAD | tail -n 1
     cmds:
       - goreleaser release --clean
+
+  pub-docker-manual:
+    cmds:
       - task: publish-docker
         vars: {IMAGE: "ghcr.io/ice-bergtech/cert-manager-linode:{{.Version}}"}
       - task: publish-docker
@@ -54,6 +57,8 @@ tasks:
 
   publish-docker:
     vars:
+      Version:
+        sh: git tag --contains HEAD | tail -n 1
       IMAGE: "ghcr.io/ice-bergtech/cert-manager-linode:{{.Version}}"
     aliases:
       - pd
