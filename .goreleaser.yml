@@ -27,16 +27,16 @@ builds:
       #- darwin
     dir: .
 
-# dockers:
-#     - image_templates:
-#       - "ghcr.io/ice-bergtech/cert-manager-linode:{{.Version}}"
-#       - "ghcr.io/ice-bergtech/cert-manager-linode:latest"
-#       use: buildx
-#       goos: linux
-#       dockerfile: "Dockerfile"
-#       build_flag_templates:
-#         - "--pull"
-#         - "--platform=linux/amd64"
+dockers:
+    - image_templates:
+      - "ghcr.io/ice-bergtech/cert-manager-linode:{{.Version}}"
+      - "ghcr.io/ice-bergtech/cert-manager-linode:latest"
+      use: buildx
+      goos: linux
+      dockerfile: "Dockerfile"
+      build_flag_templates:
+        - "--pull"
+        - "--platform=linux/amd64"
 
 archives:
   - format: tar.gz
