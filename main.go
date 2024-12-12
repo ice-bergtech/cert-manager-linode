@@ -27,6 +27,7 @@ var (
 )
 
 var GroupName = os.Getenv("GROUP_NAME")
+var PodNamespace = os.Getenv("POD_NAMESPACE")
 
 // Used to fetch api key from a kube secret
 var kClientConfig *rest.Config
@@ -34,6 +35,10 @@ var kClientConfig *rest.Config
 func main() {
 	if GroupName == "" {
 		panic("GROUP_NAME must be specified")
+	}
+	if PodNamespace == "" {
+		PodNamespace = "cert-manager"
+		println("pod namespace not set, using", PodNamespace)
 	}
 
 	cmd.RunWebhookServer(GroupName, &linodeSolver{})
@@ -175,12 +180,12 @@ func apiKeyFromSecret(cfg linodeConfig) (string, error) {
 	}
 
 	// fetch the kube secret
-	secret, err := kubeClient.CoreV1().Secrets(cfg.APISecretKeyRef.Name).Get(context.TODO(), cfg.APISecretKeyRef.Key, metav1.GetOptions{})
+	secret, err := kubeClient.CoreV1().Secrets(PodNamespace).Get(context.TODO(), cfg.APISecretKeyRef.Name, metav1.GetOptions{})
 	if err != nil {
 		return "", fmt.Errorf("issue fetching secret: %v", err)
 	}
 
-	return string(secret.Data["apiKey"]), nil
+	return string(secret.Data[cfg.APISecretKeyRef.Key]), nil
 }
 
 func clientFromConfig(cfg linodeConfig) (*linodego.Client, error) {
