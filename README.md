@@ -75,6 +75,15 @@ stringData:
 
 ## Troubleshooting
 
+# Visibility
+
+Errors from the service will appear as events in cert-manager `challenge` resources.
+
+```
+Warning  PresentError  10m (x8 over 20m)  cert-manager-challenges  Error presenting challenge: kube secret error: issue fetching secret: resource name may not be empty
+```
+
+### Service account
 ```
 linode.acme.cluster.local is forbidden: User "system:serviceaccount:cert-manager:cert-manager-chart" cannot create resource "linode" in API group "acme.cluster.local" at the cluster scope
 ```

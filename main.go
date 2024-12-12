@@ -182,7 +182,7 @@ func apiKeyFromSecret(cfg linodeConfig) (string, error) {
 	// fetch the kube secret
 	secret, err := kubeClient.CoreV1().Secrets(PodNamespace).Get(context.TODO(), cfg.APISecretKeyRef.Name, metav1.GetOptions{})
 	if err != nil {
-		return "", fmt.Errorf("issue fetching secret: %v", err)
+		return "", fmt.Errorf("issue fetching secret: { namespace: %s, name: %s } %v", PodNamespace, cfg.APISecretKeyRef.Name, err)
 	}
 
 	return string(secret.Data[cfg.APISecretKeyRef.Key]), nil
