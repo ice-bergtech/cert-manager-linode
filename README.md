@@ -72,3 +72,12 @@ stringData:
   data: 'your-api-key'
 ---
 ```
+
+## Troubleshooting
+
+```
+linode.acme.cluster.local is forbidden: User "system:serviceaccount:cert-manager:cert-manager-chart" cannot create resource "linode" in API group "acme.cluster.local" at the cluster scope
+```
+
+Make sure the service account is references properly.
+In the chart, set the var `certManager.serviceAccountName` to the service account created by cert manager.
