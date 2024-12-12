@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"encoding/base64"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -185,7 +186,13 @@ func apiKeyFromSecret(cfg linodeConfig) (string, error) {
 		return "", fmt.Errorf("issue fetching secret: { namespace: %s, name: %s } %v", PodNamespace, cfg.APISecretKeyRef.Name, err)
 	}
 
-	return string(secret.Data[cfg.APISecretKeyRef.Key]), nil
+	var result []byte
+	_, err = base64.StdEncoding.Decode(result, secret.Data[cfg.APISecretKeyRef.Key])
+	if err != nil {
+		return "", fmt.Errorf("failed to decode base64 data: %v", err)
+	}
+
+	return string(result), nil
 }
 
 func clientFromConfig(cfg linodeConfig) (*linodego.Client, error) {
