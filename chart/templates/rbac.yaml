@@ -31,6 +31,40 @@ subjects:
     name: {{ include "cert-manager-linode.fullname" . }}
     namespace: {{ .Release.Namespace }}
 ---
+# Grant the webhook permission to read the linode apikey from secrets
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: {{ include "cert-manager-linode.fullname" . }}:secret-reader
+  labels:
+    app: {{ include "cert-manager-linode.name" . }}
+    chart: {{ include "cert-manager-linode.chart" . }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+rules:
+  - apiGroups: [""]
+    resources: ["secrets"]
+    verbs: ["get", "list", "watch"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: {{ include "cert-manager-linode.fullname" . }}:secret-reader
+  labels:
+    app: {{ include "cert-manager-linode.name" . }}
+    chart: {{ include "cert-manager-linode.chart" . }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: {{ include "cert-manager-linode.fullname" . }}:secret-reader
+subjects:
+  - apiGroup: ""
+    kind: ServiceAccount
+    name: {{ include "cert-manager-linode.fullname" . }}
+    namespace: {{ .Release.Namespace }}
+---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
