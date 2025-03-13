@@ -152,7 +152,6 @@ func loadConfig(cfgJSON *v1.JSON) (linodeConfig, error) {
 
 	// If a secret name is set, we'll attempt to fetch the api key from a secret
 	if cfg.APISecretKeyRef.Name != "" {
-		println("api key secret", cfg.APISecretKeyRef.Name)
 		if val, err := apiKeyFromSecret(cfg); err != nil {
 			return cfg, fmt.Errorf("kube secret error: %v", err)
 		} else {
