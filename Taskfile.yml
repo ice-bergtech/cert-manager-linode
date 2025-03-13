@@ -1,0 +1,84 @@
+# https://taskfile.dev
+
+version: '3'
+
+vars:
+  GREETING: Hello, World!
+
+tasks:
+  default:
+    cmds:
+      - echo "{{.GREETING}}"
+    silent: true
+
+  build:
+    aliases:
+      - b
+    cmds:
+      - go mod tidy
+      - goreleaser release --snapshot --clean
+
+
+  setup:
+    cmds:
+      - go -version
+      - brew install goreleaser
+      - go install github.com/caarlos0/svu@latest
+
+  release:
+    aliases:
+      - r
+    cmds:
+      - task: tag
+      - task: publish
+
+  tag:
+    aliases:
+      - t
+    cmds:
+      - git tag "$($HOME/go/bin/svu next)"
+      - git push --tags
+
+  publish:
+    aliases:
+      - p
+    vars:
+      Version:
+        sh: git tag --contains HEAD | tail -n 1
+    cmds:
+      - goreleaser release --clean
+
+  pub-docker-manual:
+    cmds:
+      - task: publish-docker
+        vars: {IMAGE: "ghcr.io/ice-bergtech/cert-manager-linode:{{.Version}}"}
+      - task: publish-docker
+        vars: {IMAGE: "ghcr.io/ice-bergtech/cert-manager-linode:latest"}
+
+  publish-docker:
+    vars:
+      Version:
+        sh: git tag --contains HEAD | tail -n 1
+      IMAGE: "ghcr.io/ice-bergtech/cert-manager-linode:{{.Version}}"
+    aliases:
+      - pd
+    cmds:
+      - docker build . --pull --platform=linux/amd64 --tag {{.IMAGE}}
+      - docker push {{.IMAGE}}
+
+  edit-api:
+    aliases:
+      - ea
+    cmds:
+      - docker-compose -f docker/compose-api-edit.yml up -d  
+      - echo 'Viewer - https://127.0.0.1:4000'
+      - echo 'Editor - https://127.0.0.1:4001'
+
+  pre_data:
+    aliases: 
+      - pd
+    cmds:
+      - touch netdata.db && rm netdata.db
+      # find each csv and tsv files and load into sqlite db
+      - find ./data \( -name "*.csv" \) | xargs -I {} sh -c 'sqlite3 netdata.db -cmd ".mode csv" ".import {} data_{}"'
+      - find ./data \( -name "*.tsv" \) | xargs -I {} sh -c 'sqlite3 netdata.db -cmd ".mode tabs" ".import {} data_{}"'
