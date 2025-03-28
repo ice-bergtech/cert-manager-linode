@@ -1,6 +1,8 @@
 
 # Cert-Manager Linode Solver
 
+Archived, current repo is https://github.com/ice-bergtech/cert-manager-webhook-linode
+
 This adapter allows you to use the popular [Cert-Manager](https://cert-manager.io/) with [Linode DNS Manager](https://www.linode.com/docs/guides/dns-manager/) as ACME DNS01 Challange Provider.
 
 One use-case is to use wildcard certificates with [Let's Encrypt](https://letsencrypt.org/).
